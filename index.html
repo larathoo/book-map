@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Literary World Map</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f4f8;
+      --surface: #ffffff;
+      --border: #dde3ec;
+      --text: #1a202c;
+      --muted: #64748b;
+      --primary: #3b5bdb;
+      --primary-hover: #2f4ac5;
+      --primary-light: #e0e7ff;
+      --ocean: #c8dff5;
+      --land: #dde3ec;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Upload screen ──────────────────────────────────── */
+    #upload-screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .globe-icon { font-size: 3.5rem; margin-bottom: 1.25rem; line-height: 1; }
+
+    #upload-screen h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 480px;
+      line-height: 1.6;
+      margin-bottom: 2.5rem;
+    }
+
+    .upload-card {
+      background: var(--surface);
+      border: 2px dashed var(--border);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 460px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    }
+
+    .upload-card:hover, .upload-card.dragging {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      transform: translateY(-2px);
+    }
+
+    .upload-card .upload-icon { font-size: 2.25rem; margin-bottom: 0.875rem; }
+    .upload-card strong { font-size: 1rem; display: block; margin-bottom: 0.35rem; }
+    .upload-card p { color: var(--muted); font-size: 0.875rem; line-height: 1.5; }
+
+    input[type="file"] { display: none; }
+
+    .hint {
+      margin-top: 0.875rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+    }
+
+    .steps-card {
+      margin-top: 2.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      width: 100%;
+      max-width: 460px;
+      text-align: left;
+    }
+
+    .steps-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 0.875rem;
+    }
+
+    .step { display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 0.6rem; font-size: 0.875rem; color: var(--muted); }
+    .step:last-child { margin-bottom: 0; }
+    .step-num {
+      width: 22px; height: 22px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── Processing screen ──────────────────────────────── */
+    #processing-screen {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    #processing-screen h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.375rem; }
+
+    .prog-fraction {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .prog-wrap {
+      width: 100%;
+      max-width: 440px;
+      margin-top: 0.5rem;
+    }
+
+    .prog-track {
+      background: var(--border);
+      border-radius: 999px;
+      height: 8px;
+      overflow: hidden;
+      margin-bottom: 0.625rem;
+    }
+
+    .prog-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 999px;
+      transition: width 0.35s ease;
+      width: 0%;
+    }
+
+    .prog-label { color: var(--muted); font-size: 0.875rem; min-height: 1.25em; }
+
+    .cache-note {
+      margin-top: 2rem;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      max-width: 380px;
+      line-height: 1.5;
+    }
+
+    /* ── Map screen ─────────────────────────────────────── */
+    #map-screen {
+      display: none;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .app-bar-left { display: flex; align-items: center; gap: 0.625rem; }
+    .app-bar-left h1 { font-size: 1.1rem; font-weight: 700; }
+
+    .stats { display: flex; gap: 1.25rem; }
+
+    .stat { text-align: center; }
+    .stat-val { font-size: 1.25rem; font-weight: 800; color: var(--primary); line-height: 1.1; }
+    .stat-lbl { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    .app-bar-right { display: flex; align-items: center; gap: 0.625rem; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.45rem 0.875rem;
+      border-radius: 7px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--bg); color: var(--text); }
+
+    .btn-warn {
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+    .btn-warn:hover { background: #fee2e2; }
+
+    /* ── Map area ────────────────────────────────────────── */
+    .map-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: var(--ocean);
+    }
+
+    #map-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .country {
+      stroke: #fff;
+      stroke-width: 0.4px;
+      cursor: default;
+      transition: opacity 0.1s;
+    }
+
+    .country.has-books { cursor: pointer; }
+    .country.has-books:hover { opacity: 0.75; }
+    .country.active { stroke: #1a202c; stroke-width: 1.5px; }
+
+    /* book count colour scale */
+    .cnt-0  { fill: var(--land); }
+    .cnt-1  { fill: #c3f0ca; }
+    .cnt-2  { fill: #74d99f; }
+    .cnt-3  { fill: #38b17a; }
+    .cnt-4  { fill: #1a7c51; }
+    .cnt-5  { fill: #0d4e33; }
+
+    /* ── Legend ──────────────────────────────────────────── */
+    .legend {
+      position: absolute;
+      bottom: 1.25rem;
+      left: 1.25rem;
+      background: rgba(255,255,255,0.93);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      font-size: 0.78rem;
+      pointer-events: none;
+    }
+
+    .legend-hd {
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.65rem;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .leg-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+    .leg-row:last-child { margin-bottom: 0; }
+    .leg-swatch { width: 13px; height: 13px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.08); flex-shrink: 0; }
+
+    /* ── Zoom controls ───────────────────────────────────── */
+    .zoom-btns {
+      position: absolute;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .zoom-btn {
+      width: 34px; height: 34px;
+      background: rgba(255,255,255,0.93);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+      color: var(--text);
+    }
+    .zoom-btn:hover { background: white; }
+
+    /* ── Tooltip ─────────────────────────────────────────── */
+    .tooltip {
+      position: fixed;
+      background: rgba(26,32,44,0.92);
+      color: white;
+      padding: 0.4rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
+      z-index: 9999;
+      white-space: nowrap;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────── */
+    .sidebar {
+      position: absolute;
+      top: 0; right: 0;
+      width: 300px;
+      height: 100%;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+    }
+
+    .sidebar.open { transform: translateX(0); }
+
+    .sidebar-hd {
+      padding: 1rem 1.125rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+      position: sticky; top: 0;
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+
+    .sidebar-hd h2 { font-size: 0.975rem; font-weight: 700; }
+    .sidebar-sub { font-size: 0.78rem; color: var(--muted); margin-top: 0.15rem; }
+
+    .close-btn {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 1.25rem;
+      line-height: 1; padding: 0.1rem; flex-shrink: 0;
+    }
+    .close-btn:hover { color: var(--text); }
+
+    .book-list {
+      overflow-y: auto;
+      flex: 1;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .book-card {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: 0.75rem;
+    }
+
+    .book-title { font-size: 0.875rem; font-weight: 600; line-height: 1.35; }
+    .book-author { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+    .stars { margin-top: 0.35rem; font-size: 0.8rem; letter-spacing: 1px; color: #f59e0b; }
+    .star-empty { color: #cbd5e1; }
+
+    /* ── Not-found badge ─────────────────────────────────── */
+    .not-found-wrap {
+      position: absolute;
+      top: 0.875rem;
+      right: 0.875rem;
+      z-index: 15;
+    }
+
+    .not-found-wrap.hidden { display: none; }
+
+    .nf-toggle {
+      background: rgba(255,255,255,0.93);
+      backdrop-filter: blur(6px);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: var(--muted);
+      display: flex; align-items: center; gap: 0.4rem;
+      white-space: nowrap;
+    }
+    .nf-toggle:hover { color: var(--text); }
+
+    .nf-panel {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-top: 0.375rem;
+      padding: 0.75rem;
+      max-height: 220px;
+      overflow-y: auto;
+      min-width: 220px;
+      font-size: 0.8rem;
+    }
+    .nf-panel.open { display: block; }
+    .nf-item { color: var(--muted); padding: 0.2rem 0; border-bottom: 1px solid var(--bg); }
+    .nf-item:last-child { border-bottom: none; }
+
+    @media (max-width: 600px) {
+      #upload-screen h1 { font-size: 1.75rem; }
+      .sidebar { width: 100%; height: 55%; top: auto; bottom: 0; border-left: none; border-top: 1px solid var(--border); transform: translateY(100%); }
+      .sidebar.open { transform: translateY(0); }
+      .stats { gap: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ UPLOAD SCREEN -->
+<div id="upload-screen">
+  <div class="globe-icon">🗺️</div>
+  <h1>Literary World Map</h1>
+  <p class="subtitle">Upload your Goodreads library and see every country whose authors you've read, based on their citizenship.</p>
+
+  <div class="upload-card" id="upload-card">
+    <div class="upload-icon">📚</div>
+    <strong>Drop your Goodreads CSV here</strong>
+    <p>or click to browse your files</p>
+    <p class="hint">
+      <span>ℹ️</span>
+      Goodreads → My Books → Import and Export → Export Library
+    </p>
+  </div>
+  <input type="file" id="file-input" accept=".csv">
+
+  <div class="steps-card">
+    <div class="steps-title">How it works</div>
+    <div class="step"><div class="step-num">1</div><span>Upload your <strong>goodreads_library_export.csv</strong></span></div>
+    <div class="step"><div class="step-num">2</div><span>Each author's citizenship is looked up on <strong>Wikidata</strong> (free, no account needed)</span></div>
+    <div class="step"><div class="step-num">3</div><span>Countries light up on the map — click one to see your books from there</span></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ PROCESSING SCREEN -->
+<div id="processing-screen">
+  <div class="globe-icon">🔍</div>
+  <h2>Looking up authors…</h2>
+  <div class="prog-fraction" id="prog-fraction">0 / 0</div>
+  <div class="prog-wrap">
+    <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+    <div class="prog-label" id="prog-label">Starting…</div>
+  </div>
+  <p class="cache-note">Results are cached in your browser — next time this will be instant.</p>
+</div>
+
+<!-- ═══════════════════════════════════════════════ MAP SCREEN -->
+<div id="map-screen">
+  <div class="app-bar">
+    <div class="app-bar-left">
+      <span style="font-size:1.3rem">🗺️</span>
+      <h1>Literary World Map</h1>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val" id="s-books">—</div><div class="stat-lbl">Books read</div></div>
+      <div class="stat"><div class="stat-val" id="s-countries">—</div><div class="stat-lbl">Countries</div></div>
+      <div class="stat"><div class="stat-val" id="s-pct">—</div><div class="stat-lbl">of world</div></div>
+    </div>
+    <div class="app-bar-right">
+      <button class="btn btn-warn" onclick="clearCache()" title="Clear cached author lookups">Clear cache</button>
+      <button class="btn btn-ghost" onclick="resetApp()">↩ New file</button>
+    </div>
+  </div>
+
+  <div class="map-wrap">
+    <svg id="map-svg"></svg>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-hd">Books from country</div>
+      <div class="leg-row"><div class="leg-swatch" style="background:#c3f0ca"></div><span>1 book</span></div>
+      <div class="leg-row"><div class="leg-swatch" style="background:#74d99f"></div><span>2–3 books</span></div>
+      <div class="leg-row"><div class="leg-swatch" style="background:#38b17a"></div><span>4–7 books</span></div>
+      <div class="leg-row"><div class="leg-swatch" style="background:#1a7c51"></div><span>8–15 books</span></div>
+      <div class="leg-row"><div class="leg-swatch" style="background:#0d4e33"></div><span>16+ books</span></div>
+      <div class="leg-row"><div class="leg-swatch" style="background:var(--land)"></div><span>No books</span></div>
+    </div>
+
+    <!-- Zoom buttons -->
+    <div class="zoom-btns">
+      <button class="zoom-btn" id="zoom-in" title="Zoom in">+</button>
+      <button class="zoom-btn" id="zoom-out" title="Zoom out">−</button>
+      <button class="zoom-btn" id="zoom-reset" title="Reset view" style="font-size:0.85rem">⌂</button>
+    </div>
+
+    <!-- Not-found badge (top-right, hidden when sidebar open) -->
+    <div class="not-found-wrap hidden" id="nf-wrap">
+      <button class="nf-toggle" onclick="toggleNF()">
+        <span id="nf-label">0 not found</span> ▾
+      </button>
+      <div class="nf-panel" id="nf-panel"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-hd">
+        <div>
+          <h2 id="sb-country">Country</h2>
+          <div class="sidebar-sub" id="sb-sub">0 books</div>
+        </div>
+        <button class="close-btn" onclick="closeSidebar()">×</button>
+      </div>
+      <div class="book-list" id="book-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// ╔══════════════════════════════════════════════════════════╗
+// ║  ISO alpha-2 → ISO numeric (matches world-atlas IDs)    ║
+// ╚══════════════════════════════════════════════════════════╝
+const A2_TO_NUM = {
+  AD:20,AE:784,AF:4,AG:28,AI:660,AL:8,AM:51,AO:24,AQ:10,AR:32,
+  AS:16,AT:40,AU:36,AW:533,AX:248,AZ:31,BA:70,BB:52,BD:50,BE:56,
+  BF:854,BG:100,BH:48,BI:108,BJ:204,BL:652,BM:60,BN:96,BO:68,BQ:535,
+  BR:76,BS:44,BT:64,BV:74,BW:72,BY:112,BZ:84,CA:124,CC:166,CD:180,
+  CF:140,CG:178,CH:756,CI:384,CK:184,CL:152,CM:120,CN:156,CO:170,CR:188,
+  CU:192,CV:132,CW:531,CX:162,CY:196,CZ:203,DE:276,DJ:262,DK:208,DM:212,
+  DO:214,DZ:12,EC:218,EE:233,EG:818,EH:732,ER:232,ES:724,ET:231,FI:246,
+  FJ:242,FK:238,FM:583,FO:234,FR:250,GA:266,GB:826,GD:308,GE:268,GF:254,
+  GG:831,GH:288,GI:292,GL:304,GM:270,GN:324,GP:312,GQ:226,GR:300,GS:239,
+  GT:320,GU:316,GW:624,GY:328,HK:344,HM:334,HN:340,HR:191,HT:332,HU:348,
+  ID:360,IE:372,IL:376,IM:833,IN:356,IO:86,IQ:368,IR:364,IS:352,IT:380,
+  JE:832,JM:388,JO:400,JP:392,KE:404,KG:417,KH:116,KI:296,KM:174,KN:659,
+  KP:408,KR:410,KW:414,KY:136,KZ:398,LA:418,LB:422,LC:662,LI:438,LK:144,
+  LR:430,LS:426,LT:440,LU:442,LV:428,LY:434,MA:504,MC:492,MD:498,ME:499,
+  MF:663,MG:450,MH:584,MK:807,ML:466,MM:104,MN:496,MO:446,MP:580,MQ:474,
+  MR:478,MS:500,MT:470,MU:480,MV:462,MW:454,MX:484,MY:458,MZ:508,NA:516,
+  NC:540,NE:562,NF:574,NG:566,NI:558,NL:528,NO:578,NP:524,NR:520,NU:570,
+  NZ:554,OM:512,PA:591,PE:604,PF:258,PG:598,PH:608,PK:586,PL:616,PM:666,
+  PN:612,PR:630,PS:275,PT:620,PW:585,PY:600,QA:634,RE:638,RO:642,RS:688,
+  RU:643,RW:646,SA:682,SB:90,SC:690,SD:729,SE:752,SG:702,SH:654,SI:705,
+  SJ:744,SK:703,SL:694,SM:674,SN:686,SO:706,SR:740,SS:728,ST:678,SV:222,
+  SX:534,SY:760,SZ:748,TC:796,TD:148,TF:260,TG:768,TH:764,TJ:762,TK:772,
+  TL:626,TM:795,TN:788,TO:776,TR:792,TT:780,TV:798,TW:158,TZ:834,UA:804,
+  UG:800,UM:581,US:840,UY:858,UZ:860,VA:336,VC:670,VE:862,VG:92,VI:850,
+  VN:704,VU:548,WF:876,WS:882,YE:887,YT:175,ZA:710,ZM:894,ZW:716
+};
+
+const NUM_TO_A2 = Object.fromEntries(Object.entries(A2_TO_NUM).map(([a,n]) => [String(n), a]));
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  App state                                              ║
+// ╚══════════════════════════════════════════════════════════╝
+let countryBooks  = {};   // alpha-2 → [book rows]
+let countryNames  = {};   // alpha-2 → display name
+let notFound      = [];   // author names not resolved
+let allReadBooks  = [];
+let zoomBehaviour = null;
+let svgSel        = null;
+
+const CACHE_NS = 'bookmap_v4_';
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  Screen switching                                       ║
+// ╚══════════════════════════════════════════════════════════╝
+function showScreen(id) {
+  ['upload-screen','processing-screen','map-screen'].forEach(s => {
+    document.getElementById(s).style.display = 'none';
+  });
+  document.getElementById(id).style.display = 'flex';
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  File upload                                            ║
+// ╚══════════════════════════════════════════════════════════╝
+const uploadCard = document.getElementById('upload-card');
+const fileInput  = document.getElementById('file-input');
+
+uploadCard.addEventListener('click', () => fileInput.click());
+uploadCard.addEventListener('dragover', e => { e.preventDefault(); uploadCard.classList.add('dragging'); });
+uploadCard.addEventListener('dragleave', () => uploadCard.classList.remove('dragging'));
+uploadCard.addEventListener('drop', e => {
+  e.preventDefault(); uploadCard.classList.remove('dragging');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+function handleFile(file) {
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    complete: results => processBooks(results.data)
+  });
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  Main processing pipeline                               ║
+// ╚══════════════════════════════════════════════════════════╝
+async function processBooks(rows) {
+  allReadBooks = rows.filter(r => r['Exclusive Shelf'] === 'read');
+
+  showScreen('processing-screen');
+
+  // Deduplicate authors
+  const authors = [...new Set(allReadBooks.map(b => b['Author']).filter(Boolean))];
+  const total = authors.length;
+
+  const authorMap = {};   // author → [{countryCode, countryName}]
+
+  for (let i = 0; i < authors.length; i++) {
+    const author = authors[i];
+    const isCached = localStorage.getItem(CACHE_NS + author) !== null;
+
+    setProgress(i, total, isCached ? `⚡ cached: ${author}` : `🔍 ${author}`);
+
+    try {
+      const result = await lookupAuthor(author);
+      if (result?.length) authorMap[author] = result;
+      else notFound.push(author);
+    } catch {
+      notFound.push(author);
+    }
+  }
+
+  // Build countryBooks — a book appears under every citizenship country
+  countryBooks = {};
+  countryNames  = {};
+  for (const book of allReadBooks) {
+    const countries = authorMap[book['Author']];
+    if (!countries) continue;
+    for (const { countryCode, countryName } of countries) {
+      countryBooks[countryCode] = countryBooks[countryCode] || [];
+      countryBooks[countryCode].push(book);
+      countryNames[countryCode] = countryName;
+    }
+  }
+
+  setProgress(total, total, 'Done!');
+  await sleep(400);
+
+  showScreen('map-screen');
+  renderStats();
+  renderNotFound();
+  await renderMap();
+}
+
+function setProgress(done, total, label) {
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-fraction').textContent = `${done} / ${total}`;
+  document.getElementById('prog-label').textContent = label;
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  Wikidata lookup (search API + SPARQL + cache)          ║
+// ╚══════════════════════════════════════════════════════════╝
+async function lookupAuthor(name) {
+  const key = CACHE_NS + name;
+  const hit = localStorage.getItem(key);
+  if (hit !== null) return JSON.parse(hit);
+
+  const save = val => { localStorage.setItem(key, JSON.stringify(val)); return val; };
+
+  await sleep(500);
+
+  try {
+    // Step 1: find candidate QIDs via the search API (more reliable than mwapi in SPARQL)
+    const searchResp = await fetch(
+      'https://www.wikidata.org/w/api.php?action=wbsearchentities' +
+      '&search=' + encodeURIComponent(name) +
+      '&language=en&type=item&limit=5&format=json&origin=*'
+    );
+    if (!searchResp.ok) return save(null);
+
+    const { search } = await searchResp.json();
+    if (!search?.length) return save(null);
+
+    // Step 2: pick the most-notable human among candidates, return all their citizenships
+    const values = search.map(r => `wd:${r.id}`).join(' ');
+    const sparql = `
+SELECT ?countryCode ?countryLabel WHERE {
+  {
+    SELECT ?item WHERE {
+      VALUES ?item { ${values} }
+      ?item wdt:P31 wd:Q5 ;
+            wdt:P27 [] ;
+            wikibase:sitelinks ?sitelinks .
+    }
+    ORDER BY DESC(?sitelinks)
+    LIMIT 1
+  }
+  ?item wdt:P27 ?country .
+  ?country wdt:P297 ?countryCode .
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
+}`;
+
+    const sparqlResp = await fetch(
+      'https://query.wikidata.org/sparql?query=' + encodeURIComponent(sparql) + '&format=json',
+      { headers: { Accept: 'application/sparql-results+json' } }
+    );
+    if (!sparqlResp.ok) return save(null);
+
+    const bindings = (await sparqlResp.json())?.results?.bindings;
+    if (!bindings?.length) return save(null);
+
+    // Deduplicate (P27 can have duplicates via qualifiers)
+    const seen = new Set();
+    const countries = bindings
+      .filter(b => {
+        const c = b.countryCode.value;
+        if (seen.has(c)) return false;
+        seen.add(c); return true;
+      })
+      .map(b => ({ countryCode: b.countryCode.value, countryName: b.countryLabel.value }));
+
+    return save(countries);
+
+  } catch (err) {
+    console.warn('Lookup failed for', name, err);
+    return save(null);
+  }
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  D3 Map rendering                                       ║
+// ╚══════════════════════════════════════════════════════════╝
+async function renderMap() {
+  const world     = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+  const countries = topojson.feature(world, world.objects.countries);
+  const borders   = topojson.mesh(world, world.objects.countries, (a, b) => a !== b);
+
+  const W = 960, H = 500;
+  svgSel = d3.select('#map-svg');
+  svgSel.attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'xMidYMid meet');
+
+  const projection = d3.geoNaturalEarth1().fitSize([W, H], { type: 'Sphere' });
+  const path       = d3.geoPath().projection(projection);
+
+  // Zoom behaviour
+  const g = svgSel.append('g');
+
+  zoomBehaviour = d3.zoom()
+    .scaleExtent([1, 10])
+    .translateExtent([[0,0],[W,H]])
+    .on('zoom', ev => g.attr('transform', ev.transform));
+
+  svgSel.call(zoomBehaviour);
+
+  // Sphere background (ocean)
+  g.append('path')
+    .datum({ type: 'Sphere' })
+    .attr('fill', 'var(--ocean)')
+    .attr('d', path);
+
+  const tooltip = document.getElementById('tooltip');
+
+  function bookClass(id) {
+    const a2 = NUM_TO_A2[String(id)];
+    const n  = a2 && countryBooks[a2] ? countryBooks[a2].length : 0;
+    if (!n)  return 'cnt-0';
+    if (n === 1) return 'cnt-1';
+    if (n <= 3)  return 'cnt-2';
+    if (n <= 7)  return 'cnt-3';
+    if (n <= 15) return 'cnt-4';
+    return 'cnt-5';
+  }
+
+  // Countries
+  g.selectAll('.country')
+    .data(countries.features)
+    .join('path')
+    .attr('class', d => {
+      const a2 = NUM_TO_A2[String(d.id)];
+      const hasBooks = a2 && countryBooks[a2];
+      return `country ${bookClass(d.id)}${hasBooks ? ' has-books' : ''}`;
+    })
+    .attr('d', path)
+    .on('mousemove', function (event, d) {
+      const a2 = NUM_TO_A2[String(d.id)];
+      if (!a2 || !countryBooks[a2]) return;
+      const n = countryBooks[a2].length;
+      tooltip.style.opacity = '1';
+      tooltip.style.left  = (event.clientX + 14) + 'px';
+      tooltip.style.top   = (event.clientY - 10) + 'px';
+      tooltip.textContent = `${countryNames[a2]}: ${n} book${n !== 1 ? 's' : ''}`;
+    })
+    .on('mouseleave', () => { tooltip.style.opacity = '0'; })
+    .on('click', function (event, d) {
+      const a2 = NUM_TO_A2[String(d.id)];
+      if (!a2 || !countryBooks[a2]) return;
+      tooltip.style.opacity = '0';
+      svgSel.selectAll('.country').classed('active', false);
+      d3.select(this).classed('active', true);
+      openSidebar(a2);
+    });
+
+  // Borders
+  g.append('path')
+    .datum(borders)
+    .attr('fill', 'none')
+    .attr('stroke', '#fff')
+    .attr('stroke-width', 0.4)
+    .attr('d', path);
+
+  // Zoom buttons
+  document.getElementById('zoom-in').onclick    = () => svgSel.transition().call(zoomBehaviour.scaleBy, 1.5);
+  document.getElementById('zoom-out').onclick   = () => svgSel.transition().call(zoomBehaviour.scaleBy, 1 / 1.5);
+  document.getElementById('zoom-reset').onclick = () => svgSel.transition().call(zoomBehaviour.transform, d3.zoomIdentity);
+
+  // Close sidebar when clicking ocean/land
+  svgSel.on('click', function (event) {
+    if (event.target.tagName !== 'path' || !event.target.classList.contains('has-books')) {
+      closeSidebar();
+    }
+  });
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  Sidebar                                                ║
+// ╚══════════════════════════════════════════════════════════╝
+function openSidebar(a2) {
+  const books = countryBooks[a2];
+  document.getElementById('sb-country').textContent = countryNames[a2] || a2;
+  document.getElementById('sb-sub').textContent     = `${books.length} book${books.length !== 1 ? 's' : ''}`;
+
+  document.getElementById('book-list').innerHTML = books
+    .slice()
+    .sort((a, b) => (b['My Rating'] || 0) - (a['My Rating'] || 0))
+    .map(b => {
+      const rating = parseInt(b['My Rating']) || 0;
+      const stars  = rating
+        ? Array.from({length:5}, (_,i) =>
+            `<span class="${i < rating ? '' : 'star-empty'}">★</span>`
+          ).join('')
+        : '';
+      return `
+        <div class="book-card">
+          <div class="book-title">${esc(b['Title'])}</div>
+          <div class="book-author">by ${esc(b['Author'])}</div>
+          ${stars ? `<div class="stars">${stars}</div>` : ''}
+        </div>`;
+    }).join('');
+
+  document.getElementById('nf-wrap').classList.add('hidden');
+  document.getElementById('sidebar').classList.add('open');
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('nf-wrap').classList.remove('hidden');
+  if (svgSel) svgSel.selectAll('.country').classed('active', false);
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  Stats                                                  ║
+// ╚══════════════════════════════════════════════════════════╝
+function renderStats() {
+  const numC = Object.keys(countryBooks).length;
+  document.getElementById('s-books').textContent     = allReadBooks.length;
+  document.getElementById('s-countries').textContent = numC;
+  document.getElementById('s-pct').textContent       = Math.round(numC / 195 * 100) + '%';
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  Not-found authors                                      ║
+// ╚══════════════════════════════════════════════════════════╝
+function renderNotFound() {
+  if (!notFound.length) return;
+  document.getElementById('nf-wrap').classList.remove('hidden');
+  document.getElementById('nf-label').textContent = `${notFound.length} author${notFound.length !== 1 ? 's' : ''} not found`;
+  document.getElementById('nf-panel').innerHTML = notFound
+    .map(a => `<div class="nf-item">• ${esc(a)}</div>`).join('');
+}
+
+function toggleNF() {
+  document.getElementById('nf-panel').classList.toggle('open');
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  Cache management                                       ║
+// ╚══════════════════════════════════════════════════════════╝
+function clearCache() {
+  const keys = Object.keys(localStorage).filter(k => k.startsWith(CACHE_NS));
+  keys.forEach(k => localStorage.removeItem(k));
+  alert(`Cleared ${keys.length} cached author lookups. Upload your file again to re-fetch.`);
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  Reset                                                  ║
+// ╚══════════════════════════════════════════════════════════╝
+function resetApp() {
+  countryBooks = {}; countryNames = {}; notFound = []; allReadBooks = [];
+  fileInput.value = '';
+  const svg = document.getElementById('map-svg');
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  showScreen('upload-screen');
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+// ║  Utilities                                              ║
+// ╚══════════════════════════════════════════════════════════╝
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
