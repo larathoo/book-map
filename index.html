@@ -235,6 +235,171 @@
     }
     .btn-warn:hover { background: #fee2e2; }
 
+    /* ── Tabs ────────────────────────────────────────────── */
+    .tab-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.25rem;
+      display: flex;
+      gap: 0;
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      padding: 0.55rem 1rem;
+      border: none;
+      border-bottom: 2px solid transparent;
+      background: none;
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    /* ── List view ───────────────────────────────────────── */
+    #list-view {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      flex-direction: column;
+      gap: 1.75rem;
+      background: var(--bg);
+    }
+
+    .lv-country { }
+
+    .lv-country-hd {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin-bottom: 0.625rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .lv-country-name { font-size: 1rem; font-weight: 700; }
+
+    .lv-count {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--surface);
+      background: var(--primary);
+      border-radius: 999px;
+      padding: 0.1rem 0.5rem;
+    }
+
+    .lv-books {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 0.5rem;
+    }
+
+    .lv-book {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.625rem 0.75rem;
+    }
+
+    .lv-title { font-size: 0.875rem; font-weight: 600; line-height: 1.35; }
+    .lv-author { font-size: 0.78rem; color: var(--muted); margin-top: 0.2rem; }
+    .lv-stars { font-size: 0.78rem; color: #f59e0b; margin-top: 0.25rem; letter-spacing: 1px; }
+    .lv-stars .dim { color: var(--border); }
+
+    .lv-notfound .lv-country-name { color: var(--muted); }
+    .lv-notfound .lv-count { background: var(--muted); }
+    .lv-nf-item { font-size: 0.875rem; color: var(--muted); padding: 0.2rem 0; }
+
+    /* ── Stats view ──────────────────────────────────────── */
+    #stats-view {
+      display: none;
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem 1.5rem;
+      background: var(--bg);
+      flex-direction: column;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .stats-headline {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .stats-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.5rem;
+      text-align: center;
+      min-width: 130px;
+    }
+    .stats-card-val { font-size: 1.75rem; font-weight: 800; color: var(--primary); }
+    .stats-card-lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.2rem; }
+
+    .chart-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 820px;
+    }
+
+    .chart-section h2 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .chart-body {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .chart-body svg { flex-shrink: 0; overflow: visible; }
+
+    .pie-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      min-width: 180px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .pie-leg-row {
+      display: grid;
+      grid-template-columns: 12px 1fr auto auto;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+    }
+
+    .pie-dot {
+      width: 12px; height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .pie-leg-name { color: var(--text); }
+    .pie-leg-count { color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+    .pie-leg-pct { color: var(--muted); font-variant-numeric: tabular-nums; width: 2.5rem; text-align: right; }
+
     /* ── Map area ────────────────────────────────────────── */
     .map-wrap {
       flex: 1;
@@ -446,7 +611,7 @@
 <div id="upload-screen">
   <div class="globe-icon">🗺️</div>
   <h1>Literary World Map</h1>
-  <p class="subtitle">Upload your Goodreads library and see every country whose authors you've read, based on their citizenship.</p>
+  <p class="subtitle">Upload your Goodreads library and see every country whose authors you've read, based on where they were born.</p>
 
   <div class="upload-card" id="upload-card">
     <div class="upload-icon">📚</div>
@@ -462,7 +627,7 @@
   <div class="steps-card">
     <div class="steps-title">How it works</div>
     <div class="step"><div class="step-num">1</div><span>Upload your <strong>goodreads_library_export.csv</strong></span></div>
-    <div class="step"><div class="step-num">2</div><span>Each author's citizenship is looked up on <strong>Wikidata</strong> (free, no account needed)</span></div>
+    <div class="step"><div class="step-num">2</div><span>Each author's <strong>country of birth</strong> is looked up on <strong>Wikidata</strong> (free, no account needed)</span></div>
     <div class="step"><div class="step-num">3</div><span>Countries light up on the map — click one to see your books from there</span></div>
   </div>
 </div>
@@ -497,7 +662,13 @@
     </div>
   </div>
 
-  <div class="map-wrap">
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('map', this)">🗺️ Map</button>
+    <button class="tab-btn" onclick="switchTab('list', this)">📋 Book List</button>
+    <button class="tab-btn" onclick="switchTab('stats', this)">📊 Stats</button>
+  </div>
+
+  <div class="map-wrap" id="tab-map">
     <svg id="map-svg"></svg>
 
     <!-- Legend -->
@@ -538,6 +709,9 @@
       <div class="book-list" id="book-list"></div>
     </div>
   </div>
+
+  <div id="list-view"></div>
+  <div id="stats-view"></div>
 </div>
 
 <!-- Tooltip -->
@@ -575,7 +749,11 @@ const A2_TO_NUM = {
   VN:704,VU:548,WF:876,WS:882,YE:887,YT:175,ZA:710,ZM:894,ZW:716
 };
 
-const NUM_TO_A2 = Object.fromEntries(Object.entries(A2_TO_NUM).map(([a,n]) => [String(n), a]));
+const NUM_TO_A2 = {};
+for (const [a2, n] of Object.entries(A2_TO_NUM)) {
+  NUM_TO_A2[String(n)] = a2;
+  NUM_TO_A2[String(n).padStart(3, '0')] = a2;
+}
 
 // ╔══════════════════════════════════════════════════════════╗
 // ║  App state                                              ║
@@ -587,7 +765,7 @@ let allReadBooks  = [];
 let zoomBehaviour = null;
 let svgSel        = null;
 
-const CACHE_NS = 'bookmap_v4_';
+const CACHE_NS = 'bookmap_v8_';
 
 // ╔══════════════════════════════════════════════════════════╗
 // ║  Screen switching                                       ║
@@ -627,126 +805,212 @@ function handleFile(file) {
 // ╚══════════════════════════════════════════════════════════╝
 async function processBooks(rows) {
   allReadBooks = rows.filter(r => r['Exclusive Shelf'] === 'read');
-
   showScreen('processing-screen');
 
-  // Deduplicate authors
   const authors = [...new Set(allReadBooks.map(b => b['Author']).filter(Boolean))];
-  const total = authors.length;
+  const authorResults = {};
+  const uncached = [];
 
-  const authorMap = {};   // author → [{countryCode, countryName}]
+  for (const author of authors) {
+    const hit = localStorage.getItem(CACHE_NS + author);
+    if (hit !== null) authorResults[author] = JSON.parse(hit);
+    else uncached.push(author);
+  }
 
-  for (let i = 0; i < authors.length; i++) {
-    const author = authors[i];
-    const isCached = localStorage.getItem(CACHE_NS + author) !== null;
+  setProgress(0, 4, `${authors.length - uncached.length} cached — searching ${uncached.length} authors…`);
 
-    setProgress(i, total, isCached ? `⚡ cached: ${author}` : `🔍 ${author}`);
+  if (uncached.length > 0) {
+    // Phase 1: search all author names in parallel
+    setProgress(1, 4, `Searching ${uncached.length} author${uncached.length !== 1 ? 's' : ''}…`);
+    const authorQIDs = {};
+    await inParallel(uncached, 8, async author => {
+      try {
+        const r = await fetch(
+          'https://www.wikidata.org/w/api.php?action=wbsearchentities' +
+          '&search=' + encodeURIComponent(normalizeAuthorName(author)) +
+          '&language=en&type=item&limit=3&format=json&origin=*'
+        );
+        const { search } = await r.json();
+        if (search?.length) authorQIDs[author] = search.map(s => s.id);
+      } catch (e) { console.warn('Search failed:', author, e); }
+    });
 
-    try {
-      const result = await lookupAuthor(author);
-      if (result?.length) authorMap[author] = result;
-      else notFound.push(author);
-    } catch {
-      notFound.push(author);
+    // Phase 2: SPARQL to pick winner per author (most-sitelinked human among candidates)
+    setProgress(2, 4, 'Identifying best matches…');
+    const allCandidates = [...new Set(Object.values(authorQIDs).flat())];
+    const sitelinkMap = allCandidates.length ? await fetchSitelinks(allCandidates) : new Map();
+
+    const winnerQIDs = {};
+    for (const author of uncached) {
+      const winner = (authorQIDs[author] || [])
+        .filter(q => sitelinkMap.has(q))
+        .sort((a, b) => sitelinkMap.get(b) - sitelinkMap.get(a))[0];
+      if (winner) winnerQIDs[author] = winner;
+    }
+
+    // Phase 3: wbgetentities for all winners → ordered P27 (citizenship) + P19 (birthplace)
+    setProgress(3, 4, 'Looking up citizenships…');
+    const uniqueWinners = [...new Set(Object.values(winnerQIDs))];
+    const claimsMap = uniqueWinners.length ? await fetchClaims(uniqueWinners) : new Map();
+
+    // Collect all country/place QIDs that need resolving to ISO codes
+    const refQIDs = new Set();
+    for (const data of claimsMap.values()) {
+      data.citizenshipQIDs.forEach(q => refQIDs.add(q));
+      if (data.birthplaceQID) refQIDs.add(data.birthplaceQID);
+    }
+
+    // Phase 4: SPARQL to resolve country/place QIDs → ISO alpha-2 codes
+    const isoMap = refQIDs.size ? await resolveISO([...refQIDs]) : new Map();
+
+    // Resolve each author: first listed citizenship → fallback to birthplace
+    for (const author of uncached) {
+      const claims = claimsMap.get(winnerQIDs[author]);
+      let result = null;
+      if (claims) {
+        for (const cqid of claims.citizenshipQIDs) {
+          const iso = isoMap.get(cqid);
+          if (iso) { result = iso; break; }
+        }
+        if (!result && claims.birthplaceQID)
+          result = isoMap.get(claims.birthplaceQID) ?? null;
+      }
+      authorResults[author] = result;
+      localStorage.setItem(CACHE_NS + author, JSON.stringify(result));
+      if (!result) console.info('Not found:', author, '| winner:', winnerQIDs[author], '| claims:', claims);
     }
   }
 
-  // Build countryBooks — a book appears under every citizenship country
+  // Build countryBooks
   countryBooks = {};
   countryNames  = {};
+  notFound      = [];
   for (const book of allReadBooks) {
-    const countries = authorMap[book['Author']];
-    if (!countries) continue;
-    for (const { countryCode, countryName } of countries) {
-      countryBooks[countryCode] = countryBooks[countryCode] || [];
-      countryBooks[countryCode].push(book);
-      countryNames[countryCode] = countryName;
-    }
+    const info = authorResults[book['Author']];
+    if (!info) { notFound.push(book['Author']); continue; }
+    countryBooks[info.countryCode] ??= [];
+    countryBooks[info.countryCode].push(book);
+    countryNames[info.countryCode] = info.countryName;
   }
+  notFound = [...new Set(notFound)];
 
-  setProgress(total, total, 'Done!');
+  setProgress(4, 4, 'Done!');
   await sleep(400);
-
   showScreen('map-screen');
   renderStats();
   renderNotFound();
   await renderMap();
 }
 
-function setProgress(done, total, label) {
-  const pct = total ? Math.round((done / total) * 100) : 0;
+function setProgress(step, total, label) {
+  const pct = total ? Math.round((step / total) * 100) : 0;
   document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-fraction').textContent = `${done} / ${total}`;
+  document.getElementById('prog-fraction').textContent = `Step ${step} of ${total}`;
   document.getElementById('prog-label').textContent = label;
 }
 
 // ╔══════════════════════════════════════════════════════════╗
-// ║  Wikidata lookup (search API + SPARQL + cache)          ║
+// ║  Wikidata helpers                                       ║
 // ╚══════════════════════════════════════════════════════════╝
-async function lookupAuthor(name) {
-  const key = CACHE_NS + name;
-  const hit = localStorage.getItem(key);
-  if (hit !== null) return JSON.parse(hit);
 
-  const save = val => { localStorage.setItem(key, JSON.stringify(val)); return val; };
-
-  await sleep(500);
-
-  try {
-    // Step 1: find candidate QIDs via the search API (more reliable than mwapi in SPARQL)
-    const searchResp = await fetch(
-      'https://www.wikidata.org/w/api.php?action=wbsearchentities' +
-      '&search=' + encodeURIComponent(name) +
-      '&language=en&type=item&limit=5&format=json&origin=*'
-    );
-    if (!searchResp.ok) return save(null);
-
-    const { search } = await searchResp.json();
-    if (!search?.length) return save(null);
-
-    // Step 2: pick the most-notable human among candidates, return all their citizenships
-    const values = search.map(r => `wd:${r.id}`).join(' ');
+// SPARQL: get sitelinks count for human candidates (used to pick the right person)
+async function fetchSitelinks(qids) {
+  const result = new Map();
+  for (let i = 0; i < qids.length; i += 150) {
+    const values = qids.slice(i, i + 150).map(q => `wd:${q}`).join(' ');
     const sparql = `
-SELECT ?countryCode ?countryLabel WHERE {
-  {
-    SELECT ?item WHERE {
-      VALUES ?item { ${values} }
-      ?item wdt:P31 wd:Q5 ;
-            wdt:P27 [] ;
-            wikibase:sitelinks ?sitelinks .
-    }
-    ORDER BY DESC(?sitelinks)
-    LIMIT 1
+SELECT ?item ?sitelinks WHERE {
+  VALUES ?item { ${values} }
+  ?item wdt:P31 wd:Q5 ;
+        wikibase:sitelinks ?sitelinks .
+}`;
+    try {
+      const r = await fetch(
+        'https://query.wikidata.org/sparql?query=' + encodeURIComponent(sparql) + '&format=json',
+        { headers: { Accept: 'application/sparql-results+json' } }
+      );
+      for (const b of (await r.json())?.results?.bindings ?? [])
+        result.set(b.item.value.split('/').pop(), +b.sitelinks.value);
+    } catch (e) { console.warn('Sitelinks SPARQL failed', e); }
   }
-  ?item wdt:P27 ?country .
-  ?country wdt:P297 ?countryCode .
+  return result;
+}
+
+// wbgetentities: get ordered P27 (citizenships) and P19 (birthplace) for winner QIDs.
+// Claims are returned in Wikidata's listed order, preferred rank first within that.
+async function fetchClaims(qids) {
+  const result = new Map();
+  for (let i = 0; i < qids.length; i += 50) {
+    try {
+      const r = await fetch(
+        'https://www.wikidata.org/w/api.php?action=wbgetentities' +
+        '&ids=' + qids.slice(i, i + 50).join('|') +
+        '&props=claims&format=json&origin=*'
+      );
+      const { entities } = await r.json();
+      for (const [qid, entity] of Object.entries(entities)) {
+        if (entity.missing) continue;
+        // Citizenships: preferred rank first, then normal, drop deprecated
+        const citizenshipQIDs = (entity.claims?.P27 ?? [])
+          .filter(s => s.rank !== 'deprecated')
+          .sort((a, b) => (b.rank === 'preferred') - (a.rank === 'preferred'))
+          .map(s => s.mainsnak?.datavalue?.value?.id)
+          .filter(Boolean);
+        // Birthplace: preferred rank first, then normal, drop deprecated
+        const p19 = (entity.claims?.P19 ?? [])
+          .filter(s => s.rank !== 'deprecated')
+          .sort((a, b) => (b.rank === 'preferred') - (a.rank === 'preferred'));
+        const birthplaceQID = p19[0]?.mainsnak?.datavalue?.value?.id ?? null;
+        result.set(qid, { citizenshipQIDs, birthplaceQID });
+      }
+    } catch (e) { console.warn('wbgetentities failed', e); }
+  }
+  return result;
+}
+
+// SPARQL: resolve country or place QIDs → ISO alpha-2 code + name.
+// Handles both direct countries (P297) and birth places (P17 → country → P297).
+async function resolveISO(qids) {
+  const result = new Map();
+  for (let i = 0; i < qids.length; i += 150) {
+    const values = qids.slice(i, i + 150).map(q => `wd:${q}`).join(' ');
+    const sparql = `
+SELECT ?place ?countryCode ?countryLabel WHERE {
+  VALUES ?place { ${values} }
+  {
+    ?place wdt:P297 ?countryCode .
+    BIND(?place AS ?country)
+  } UNION {
+    ?place wdt:P17 ?country .
+    ?country wdt:P297 ?countryCode .
+  }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
 }`;
+    try {
+      const r = await fetch(
+        'https://query.wikidata.org/sparql?query=' + encodeURIComponent(sparql) + '&format=json',
+        { headers: { Accept: 'application/sparql-results+json' } }
+      );
+      for (const b of (await r.json())?.results?.bindings ?? []) {
+        const qid = b.place.value.split('/').pop();
+        if (!result.has(qid))
+          result.set(qid, { countryCode: b.countryCode.value, countryName: b.countryLabel.value });
+      }
+    } catch (e) { console.warn('ISO resolve SPARQL failed', e); }
+  }
+  return result;
+}
 
-    const sparqlResp = await fetch(
-      'https://query.wikidata.org/sparql?query=' + encodeURIComponent(sparql) + '&format=json',
-      { headers: { Accept: 'application/sparql-results+json' } }
-    );
-    if (!sparqlResp.ok) return save(null);
+function normalizeAuthorName(name) {
+  return name
+    .replace(/\s+/g, ' ')
+    .replace(/^(Dr|Prof|Sir|Dame|Lord|Lady)\.?\s+/i, '')
+    .trim();
+}
 
-    const bindings = (await sparqlResp.json())?.results?.bindings;
-    if (!bindings?.length) return save(null);
-
-    // Deduplicate (P27 can have duplicates via qualifiers)
-    const seen = new Set();
-    const countries = bindings
-      .filter(b => {
-        const c = b.countryCode.value;
-        if (seen.has(c)) return false;
-        seen.add(c); return true;
-      })
-      .map(b => ({ countryCode: b.countryCode.value, countryName: b.countryLabel.value }));
-
-    return save(countries);
-
-  } catch (err) {
-    console.warn('Lookup failed for', name, err);
-    return save(null);
+async function inParallel(items, concurrency, fn) {
+  for (let i = 0; i < items.length; i += concurrency) {
+    await Promise.all(items.slice(i, i + concurrency).map(fn));
   }
 }
 
@@ -754,11 +1018,11 @@ SELECT ?countryCode ?countryLabel WHERE {
 // ║  D3 Map rendering                                       ║
 // ╚══════════════════════════════════════════════════════════╝
 async function renderMap() {
-  const world     = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+  const world     = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-50m.json');
   const countries = topojson.feature(world, world.objects.countries);
   const borders   = topojson.mesh(world, world.objects.countries, (a, b) => a !== b);
 
-  const W = 960, H = 500;
+const W = 960, H = 500;
   svgSel = d3.select('#map-svg');
   svgSel.attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'xMidYMid meet');
 
@@ -891,12 +1155,71 @@ function renderStats() {
 }
 
 // ╔══════════════════════════════════════════════════════════╗
+// ║  Tab switching                                          ║
+// ╚══════════════════════════════════════════════════════════╝
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-map').style.display    = tab === 'map'   ? '' : 'none';
+  document.getElementById('list-view').style.display  = tab === 'list'  ? 'flex' : 'none';
+  document.getElementById('stats-view').style.display = tab === 'stats' ? 'flex' : 'none';
+  if (tab === 'list')  renderBookList();
+  if (tab === 'stats') renderStatsTab();
+}
+
+function renderBookList() {
+  const container = document.getElementById('list-view');
+
+  const sortedCountries = Object.keys(countryBooks)
+    .sort((a, b) => (countryNames[a] || a).localeCompare(countryNames[b] || b));
+
+  const starsHtml = rating => {
+    if (!rating) return '';
+    const filled = '★'.repeat(rating);
+    const empty  = '<span class="dim">' + '★'.repeat(5 - rating) + '</span>';
+    return `<div class="lv-stars">${filled}${empty}</div>`;
+  };
+
+  const countrySections = sortedCountries.map(code => {
+    const books = countryBooks[code]
+      .slice()
+      .sort((a, b) => a['Title'].localeCompare(b['Title']));
+    return `
+      <div class="lv-country">
+        <div class="lv-country-hd">
+          <span class="lv-country-name">${esc(countryNames[code] || code)}</span>
+          <span class="lv-count">${books.length}</span>
+        </div>
+        <div class="lv-books">
+          ${books.map(b => `
+            <div class="lv-book">
+              <div class="lv-title">${esc(b['Title'])}</div>
+              <div class="lv-author">${esc(b['Author'])}</div>
+              ${starsHtml(parseInt(b['My Rating']) || 0)}
+            </div>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+
+  const notFoundSection = notFound.length ? `
+    <div class="lv-country lv-notfound">
+      <div class="lv-country-hd">
+        <span class="lv-country-name">Not matched</span>
+        <span class="lv-count">${notFound.length}</span>
+      </div>
+      ${notFound.map(a => `<div class="lv-nf-item">• ${esc(a)}</div>`).join('')}
+    </div>` : '';
+
+  container.innerHTML = countrySections + notFoundSection;
+}
+
+// ╔══════════════════════════════════════════════════════════╗
 // ║  Not-found authors                                      ║
 // ╚══════════════════════════════════════════════════════════╝
 function renderNotFound() {
   if (!notFound.length) return;
   document.getElementById('nf-wrap').classList.remove('hidden');
-  document.getElementById('nf-label').textContent = `${notFound.length} author${notFound.length !== 1 ? 's' : ''} not found`;
+  document.getElementById('nf-label').textContent = `${notFound.length} book${notFound.length !== 1 ? 's' : ''} not found`;
   document.getElementById('nf-panel').innerHTML = notFound
     .map(a => `<div class="nf-item">• ${esc(a)}</div>`).join('');
 }
@@ -917,11 +1240,124 @@ function clearCache() {
 // ╔══════════════════════════════════════════════════════════╗
 // ║  Reset                                                  ║
 // ╚══════════════════════════════════════════════════════════╝
+// ╔══════════════════════════════════════════════════════════╗
+// ║  Stats tab                                              ║
+// ╚══════════════════════════════════════════════════════════╝
+function renderStatsTab() {
+  const container = document.getElementById('stats-view');
+  container.innerHTML = '';
+
+  const data = Object.entries(countryBooks)
+    .map(([code, books]) => ({ code, name: countryNames[code] || code, count: books.length }))
+    .sort((a, b) => b.count - a.count);
+
+  const total = allReadBooks.length;
+  const matched = data.reduce((s, d) => s + d.count, 0);
+  const topCountry = data[0];
+  const avgRating = (() => {
+    const rated = allReadBooks.map(b => parseInt(b['My Rating'])).filter(r => r > 0);
+    return rated.length ? (rated.reduce((s, r) => s + r, 0) / rated.length).toFixed(1) : '—';
+  })();
+
+  // Headline cards
+  const headline = document.createElement('div');
+  headline.className = 'stats-headline';
+  headline.innerHTML = `
+    <div class="stats-card"><div class="stats-card-val">${total}</div><div class="stats-card-lbl">Books read</div></div>
+    <div class="stats-card"><div class="stats-card-val">${data.length}</div><div class="stats-card-lbl">Countries</div></div>
+    <div class="stats-card"><div class="stats-card-val">${topCountry ? esc(topCountry.name) : '—'}</div><div class="stats-card-lbl">Top country</div></div>
+    <div class="stats-card"><div class="stats-card-val">${avgRating}</div><div class="stats-card-lbl">Avg rating</div></div>
+    <div class="stats-card"><div class="stats-card-val">${total - matched}</div><div class="stats-card-lbl">Not matched</div></div>`;
+  container.appendChild(headline);
+
+  if (!data.length) return;
+
+  // Group tail into "Other" beyond top 12
+  const MAX = 12;
+  let slices = data;
+  if (data.length > MAX) {
+    const other = data.slice(MAX).reduce((s, d) => s + d.count, 0);
+    slices = [...data.slice(0, MAX), { code: '__other', name: 'Other', count: other }];
+  }
+
+  const color = d3.scaleOrdinal([
+    '#3b5bdb','#1971c2','#0c8599','#2f9e44','#e67700',
+    '#c2255c','#9c36b5','#5c7cfa','#38d9a9','#ffd43b',
+    '#ff6b6b','#845ef7','#94a3b8'
+  ]);
+
+  // Donut chart
+  const SIZE = 280, R = 118, r = 58;
+  const svg = d3.create('svg')
+    .attr('viewBox', `0 0 ${SIZE} ${SIZE}`)
+    .attr('width', SIZE).attr('height', SIZE);
+
+  const g = svg.append('g').attr('transform', `translate(${SIZE / 2},${SIZE / 2})`);
+
+  const pie   = d3.pie().value(d => d.count).sort(null);
+  const arc   = d3.arc().innerRadius(r).outerRadius(R);
+  const arcHov = d3.arc().innerRadius(r).outerRadius(R + 8);
+  const tooltip = document.getElementById('tooltip');
+
+  g.selectAll('path')
+    .data(pie(slices))
+    .join('path')
+    .attr('d', arc)
+    .attr('fill', (_, i) => color(i))
+    .attr('stroke', 'white')
+    .attr('stroke-width', 2)
+    .style('cursor', 'pointer')
+    .on('mousemove', function(event, d) {
+      d3.select(this).attr('d', arcHov);
+      const pct = Math.round(d.data.count / matched * 100);
+      tooltip.style.opacity = '1';
+      tooltip.style.left = (event.clientX + 14) + 'px';
+      tooltip.style.top  = (event.clientY - 10) + 'px';
+      tooltip.textContent = `${d.data.name}: ${d.data.count} book${d.data.count !== 1 ? 's' : ''} (${pct}%)`;
+    })
+    .on('mouseleave', function(_, d) {
+      d3.select(this).attr('d', arc);
+      tooltip.style.opacity = '0';
+    });
+
+  // Centre label
+  g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.15em')
+    .attr('font-size', '2rem').attr('font-weight', '800').attr('fill', 'var(--text)').text(matched);
+  g.append('text').attr('text-anchor', 'middle').attr('dy', '1.3em')
+    .attr('font-size', '0.7rem').attr('fill', 'var(--muted)').text('BOOKS MAPPED');
+
+  // Legend rows
+  const legend = document.createElement('div');
+  legend.className = 'pie-legend';
+  legend.innerHTML = slices.map((d, i) => `
+    <div class="pie-leg-row">
+      <span class="pie-dot" style="background:${color(i)}"></span>
+      <span class="pie-leg-name">${esc(d.name)}</span>
+      <span class="pie-leg-count">${d.count}</span>
+      <span class="pie-leg-pct">${Math.round(d.count / matched * 100)}%</span>
+    </div>`).join('');
+
+  const section = document.createElement('div');
+  section.className = 'chart-section';
+  section.innerHTML = '<h2>Books by country</h2>';
+  const body = document.createElement('div');
+  body.className = 'chart-body';
+  body.appendChild(svg.node());
+  body.appendChild(legend);
+  section.appendChild(body);
+  container.appendChild(section);
+}
+
 function resetApp() {
   countryBooks = {}; countryNames = {}; notFound = []; allReadBooks = [];
   fileInput.value = '';
   const svg = document.getElementById('map-svg');
   while (svg.firstChild) svg.removeChild(svg.firstChild);
+  // Reset tabs back to map
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  document.getElementById('list-view').style.display  = 'none';
+  document.getElementById('stats-view').style.display = 'none';
+  document.getElementById('tab-map').style.display    = '';
   showScreen('upload-screen');
 }
 
